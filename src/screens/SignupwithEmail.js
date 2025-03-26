@@ -1,4 +1,5 @@
 import {
+  Alert,
     Dimensions,
     PixelRatio,
     SafeAreaView,
@@ -15,6 +16,8 @@ import {
   import Eyeoff from '../assets/Icons/Eyeoff.svg';
   import Checkbox from '../assets/Icons/Checkbox.svg';
   import Tick from '../assets/Icons/Tick.svg';
+import { useNavigation } from '@react-navigation/native';
+import auth from '@react-native-firebase/auth';
   
   const {width, height} = Dimensions.get('window');
   const fontSize = size => PixelRatio.getFontScale() * size;
@@ -31,6 +34,30 @@ import {
       password: null,
       confirmPassword: null,
     });
+
+     const navigation = useNavigation();
+
+    const registerUser = async () => {
+      try {
+        await auth().createUserWithEmailAndPassword(email, password,confirmpassword);
+        console.log('✅ User account created');
+        Alert.alert('Success', 'Your account has been created!');
+        navigation.navigate('SigninScreen');
+      } catch (error) {
+        console.error(' Registration Error:', error);
+  
+        let errorMessage = 'Registration failed. Please try again.';
+        if (error.code === 'auth/email-already-in-use') {
+          errorMessage = 'That email address is already in use!';
+        } else if (error.code === 'auth/invalid-email') {
+          errorMessage = 'That email address is invalid!';
+        } else if (error.code === 'auth/weak-password') {
+          errorMessage = 'Password should be at least 6 characters!';
+        }
+  
+        Alert.alert('Registration Error', errorMessage);
+      }
+    };
   
     const validateEmail = email => /\S+@\S+\.\S+/.test(email);
     const validatePassword = password => password.length >= 8;
@@ -224,7 +251,7 @@ import {
             </TouchableOpacity>
           </View>
           <View style={styles.btncontainer}>
-            <TouchableOpacity style={styles.btn}>
+            <TouchableOpacity style={styles.btn} onPress={() => registerUser(email, password,confirmpassword)}>
               <Text style={styles.btntxt}>Signup</Text>
             </TouchableOpacity>
           </View>

@@ -7,24 +7,55 @@ import {
     TouchableOpacity,
     View,
   } from 'react-native';
-  import React from 'react';
+  import React, { useEffect } from 'react';
   import GoogleIcon from '../assets/Icons/Googleicon.svg';
   import Appleicon from '../assets/Icons/Appleicon.svg';
   import {useNavigation} from '@react-navigation/native';
+  import {GoogleSignin} from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
   
   const {width, height} = Dimensions.get('window');
   const fontSize = size => PixelRatio.getFontScale() * size;
   
   export default function GoogleLogin() {
     const navigation = useNavigation();
+
+    useEffect(() => {
+        GoogleSignin.configure({
+          webClientId:
+            '945532369038-cq2vp76splkvkntb2nhil3jtaelm5ea5.apps.googleusercontent.com',
+        });
+      }, []);
+    
+      const signInWithGoogle = async () => {
+        try {
+          await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
+    
+          await GoogleSignin.signOut();
+          const idToken = await GoogleSignin.signIn();
+          console.log('Google Sign-In Success, idToken:', idToken);
+          const googleCredential = auth.GoogleAuthProvider.credential(
+            idToken.data.idToken,
+          );
+          await auth().signInWithCredential(googleCredential);
+          console.log('User signed in with Google!');
+        } catch (err) {
+          console.log('sign in failed', err);
+          if (err.code) {
+            console.log('Error code:', err.code);
+          }
+          if (err.message) {
+            console.log('Error message:', err.message);
+          }
+        }
+      };
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.headertxtcontainer}>
           <Text style={styles.headertxt}>Login to ShopZen</Text>
         </View>
-  
         <View style={styles.logbtncontainer}>
-          <TouchableOpacity style={styles.google}>
+          <TouchableOpacity style={styles.google} onPress={signInWithGoogle}>
             <GoogleIcon />
             <Text>Login with Google</Text>
           </TouchableOpacity>

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "945532369038",
+    "project_id": "ecom-9e9ea",
+    "storage_bucket": "ecom-9e9ea.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:945532369038:android:f7e3749d11f506181431df",
+        "android_client_info": {
+          "package_name": "com.shopzenapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "945532369038-ngpaim267vp96ps67omoka1o0dk6hdt4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.shopzenapp",
+            "certificate_hash": "d06ddea89151da79d0a66852e38537dfe23ecc9b"
+          }
+        },
+        {
+          "client_id": "945532369038-rcch9bltu03q317b7u85pipovtpeh1bu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.shopzenapp",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "945532369038-cq2vp76splkvkntb2nhil3jtaelm5ea5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA24O2F12aqP61AS_1FvV4-Uf0PeSE0_JM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "945532369038-cq2vp76splkvkntb2nhil3jtaelm5ea5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
