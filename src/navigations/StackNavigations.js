@@ -9,6 +9,7 @@ import GoogleLogin from '../screens/GoogleLogin';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SignupwithEmail from '../screens/SignupwithEmail';
 import LoginwithEmail from '../screens/LoginwithEmail';
+import Home from '../screens/Home';
 
 const Stack = createNativeStackNavigator();
 
@@ -41,7 +42,7 @@ export default function StackNavigations() {
   }
   return (
     <Stack.Navigator
-      initialRouteName={isFirstLaunch ? 'onboard' : 'GoogleLogin'}
+      initialRouteName={isFirstLaunch ? 'onboard' : 'Home'}
       screenOptions={{headerShown: false}}
     
       >
@@ -50,6 +51,7 @@ export default function StackNavigations() {
       <Stack.Screen name="GoogleLogin" component={GoogleLogin} />
       <Stack.Screen name="SignupwithEmail" component={SignupwithEmail}/>
       <Stack.Screen name="LoginwithEmail" component={LoginwithEmail}/>
+      <Stack.Screen name="Home" component={Home}/>
     </Stack.Navigator>
   );
 }
