@@ -29,6 +29,8 @@ import axios from 'axios';
 
 import Rating from '../assets/Icons/Rating.svg';
 import Heart from '../assets/Icons/Heart.svg';
+import Heratfill from '../assets/Icons/Heartfill.svg';
+import {useNavigation} from '@react-navigation/native';
 
 const {width, height} = Dimensions.get('window');
 const fontSize = size => PixelRatio.getFontScale() * size;
@@ -86,31 +88,48 @@ const banners = [
 ];
 
 export default function Home() {
+  const navigation = useNavigation();
+
   const [search, setSearch] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const [data, setData] = useState();
+  const [wishlist, setWishlist] = useState({});
+
+  const toggleWishlist = productId => {
+    setWishlist(prevState => ({
+      ...prevState,
+      [productId]: !prevState[productId],
+    }));
+  };
 
   useEffect(() => {
-    axios
-      .get('https://api.escuelajs.co/api/v1/products')
-      .then(res => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get('https://api.escuelajs.co/api/v1/products');
         setData(res.data);
-      })
-      .catch(err => {
-        console.log(err);
-      });
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+    fetchData();
   }, []);
+  const filteredProducts = data?.filter(item =>
+    item.title.toLowerCase().includes(search.toLowerCase()),
+  );
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ScrollView>
+      
         <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={{paddingBottom: 100}}>
           <View style={styles.topcontainer}>
             <View>
               <Text style={styles.loctxt}>Location</Text>
               <Text style={styles.adtxt}>Dhaka, Bangladesh</Text>
             </View>
             <View style={styles.bellcontainer}>
+              <TouchableOpacity>
               <Bell />
+              </TouchableOpacity>
             </View>
           </View>
           <View style={styles.searchWrapper}>
@@ -145,6 +164,7 @@ export default function Home() {
               horizontal
               data={icondata}
               keyExtractor={item => item.id}
+              nestedScrollEnabled={true}
               keyboardShouldPersistTaps="handled"
               initialNumToRender={5}
               maxToRenderPerBatch={3}
@@ -165,7 +185,7 @@ export default function Home() {
               width={width * 0.9}
               height={height * 0.25}
               autoPlay={true}
-              autoPlayInterval={1000}
+              autoPlayInterval={3000}
               loop
               data={banners}
               scrollAnimationDuration={1000}
@@ -193,31 +213,49 @@ export default function Home() {
           </View>
           <View style={styles.productwrapper}>
             <FlatList
-              data={data?.slice(0, 10)}
+              data={filteredProducts?.slice(10, 20)}
               numColumns={2}
               keyExtractor={item => item.id.toString()}
+              nestedScrollEnabled={true}
               showsHorizontalScrollIndicator={false}
+              getItemLayout={(data, index) => ({
+                length: 100,
+                offset: 100 * index,
+                index,
+              })}
               renderItem={({item}) => (
                 <View style={styles.productContainer}>
-                  <View style={styles.heartcontainer}>
-                  <Heart/>
-                  </View>
-                  <Image
-                    source={{uri: item.images[0]}}
-                    style={styles.productImage}
-                  />
-                  <Text style={styles.productTitle}>{item.title}</Text>
-                  <Text style={styles.productPrice}>${item.price}</Text>
-                  <View style={styles.ratingcontainer}>
-                      <Rating/>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('ProductDetails', {product: item})
+                    }>
+                    <View style={styles.heartcontainer}>
+                      <TouchableOpacity onPress={() => toggleWishlist(item.id)}>
+                        {wishlist[item.id] ? (
+                          <Heratfill height={20} width={20} />
+                        ) : (
+                          <Heart height={20} width={20} />
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                    <Image
+                      source={{uri: item.category.image}}
+                      style={styles.productImage}
+                    />
+                    <Text style={styles.productTitle}>{item.title}</Text>
+                    <Text style={styles.productPrice}>${item.price}</Text>
+                    <View style={styles.ratingcontainer}>
+                      <Rating />
                       <Text>4.8 (120)</Text>
-                  </View>
+                    </View>
+                  </TouchableOpacity>
                 </View>
               )}
             />
           </View>
+          </ScrollView>
         </SafeAreaView>
-      </ScrollView>
+      
     </TouchableWithoutFeedback>
   );
 }
@@ -361,7 +399,6 @@ const styles = StyleSheet.create({
   productwrapper: {
     width: '90%',
     alignSelf: 'center',
-  
   },
   productContainer: {
     width: width * 0.4,
@@ -397,20 +434,20 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     marginTop: height * 0.01,
   },
-  ratingcontainer:{
-    flexDirection:'row',
-    marginLeft : width * 0.02,
+  ratingcontainer: {
+    flexDirection: 'row',
+    marginLeft: width * 0.02,
     marginTop: height * 0.01,
-    marginBottom:height * 0.015,
-    gap:7,
+    marginBottom: height * 0.015,
+    gap: 7,
   },
   heartcontainer: {
     position: 'absolute',
-    top: height * 0.002,
-    right: width * 0.003,
-    borderRadius: 20,
+    top: height * 0.01,
+    right: width * 0.02,
+    borderRadius: 5,
     zIndex: 1,
+    backgroundColor: '#FBFBFC80',
+    padding: 3,
   },
-
-
 });

@@ -216,7 +216,7 @@ export default function LoginwithEmail() {
                     style={styles.modalbtn}
                     onPress={() => {
                       setModalVisible(false);
-                      navigation.navigate('Home');
+                      navigation.navigate('TabNavigation');
                     }}>
                     <Text style={styles.modalbtntxt}>Done</Text>
                   </TouchableOpacity>
