@@ -3,7 +3,9 @@ import {
   FlatList,
   Image,
   Keyboard,
+  KeyboardAvoidingView,
   PixelRatio,
+  Platform,
   Pressable,
   SafeAreaView,
   ScrollView,
@@ -113,149 +115,164 @@ export default function Home() {
     };
     fetchData();
   }, []);
-  const filteredProducts = data?.filter(item =>
-    item.title.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filteredProducts = Array.isArray(data)
+  ? data.filter(item =>
+      item?.title?.toLowerCase().includes(search.trim().toLowerCase())
+    )
+  : [];
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      
-        <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={{paddingBottom: 100}}>
-          <View style={styles.topcontainer}>
-            <View>
-              <Text style={styles.loctxt}>Location</Text>
-              <Text style={styles.adtxt}>Dhaka, Bangladesh</Text>
-            </View>
-            <View style={styles.bellcontainer}>
-              <TouchableOpacity>
-              <Bell />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.searchWrapper}>
-            <View style={styles.searchContainer}>
-              <Searchicon />
-              <TextInput
-                style={styles.searchInput}
-                value={search}
-                onChangeText={setSearch}
-                placeholder="Find your favorite items"
-                placeholderTextColor="#8F959E"
-              />
-              <Pressable style={styles.micButton}>
-                <Serachvisual />
-              </Pressable>
-            </View>
-          </View>
-
-          <View style={styles.categorywraper}>
-            <View>
-              <Text style={styles.sectionTitle}>Categories</Text>
-            </View>
-            <View style={styles.viewContainer}>
-              <Pressable>
-                <Text style={styles.viewtitle}>View All</Text>
-              </Pressable>
-            </View>
-          </View>
-
-          <View style={styles.catcontainer}>
-            <FlatList
-              horizontal
-              data={icondata}
-              keyExtractor={item => item.id}
-              nestedScrollEnabled={true}
-              keyboardShouldPersistTaps="handled"
-              initialNumToRender={5}
-              maxToRenderPerBatch={3}
-              renderItem={({item}) => (
+      <SafeAreaView style={styles.container}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'android' ? 'padding' : 'height'}
+          style={{flex: 1}}>
+          <ScrollView
+            contentContainerStyle={{flexGrow: 1,paddingBottom: 100}}
+            keyboardShouldPersistTaps="handled"
+            
+            showsVerticalScrollIndicator={false}>
+            <View style={{flex: 1}}>
+              <View style={styles.topcontainer}>
                 <View>
+                  <Text style={styles.loctxt}>Location</Text>
+                  <Text style={styles.adtxt}>Dhaka, Bangladesh</Text>
+                </View>
+                <View style={styles.bellcontainer}>
                   <TouchableOpacity>
-                    <View style={styles.iconcontainer}>{item.icon}</View>
-                    <View style={styles.nametxtcontainer}>
-                      <Text style={styles.nametxt}>{item.name}</Text>
-                    </View>
+                    <Bell />
                   </TouchableOpacity>
                 </View>
-              )}
-            />
-          </View>
-          <View style={styles.carouselContainer}>
-            <Carousel
-              width={width * 0.9}
-              height={height * 0.25}
-              autoPlay={true}
-              autoPlayInterval={3000}
-              loop
-              data={banners}
-              scrollAnimationDuration={1000}
-              onSnapToItem={index => setActiveIndex(index)}
-              renderItem={({item}) => (
-                <View style={styles.bannerWrapper}>
-                  <Image source={item.image} style={styles.bannerImage} />
+              </View>
+              <View style={styles.searchWrapper}>
+                <View style={styles.searchContainer}>
+                  <Searchicon />
+                  <TextInput
+                    style={styles.searchInput}
+                    value={search}
+                    onChangeText={setSearch}
+                    placeholder="Find your favorite items"
+                    placeholderTextColor="#8F959E"
+                  />
+                  <Pressable style={styles.micButton}>
+                    <Serachvisual />
+                  </Pressable>
                 </View>
-              )}
-            />
-            <View style={styles.pagination}>
-              {banners.map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.dot,
-                    activeIndex === i ? styles.activeDot : styles.inactiveDot,
-                  ]}
-                />
-              ))}
-            </View>
-          </View>
-          <View style={styles.hottxtcontainer}>
-            <Text style={styles.hottxt}>Hot Deals</Text>
-          </View>
-          <View style={styles.productwrapper}>
-            <FlatList
-              data={filteredProducts?.slice(10, 20)}
-              numColumns={2}
-              keyExtractor={item => item.id.toString()}
-              nestedScrollEnabled={true}
-              showsHorizontalScrollIndicator={false}
-              getItemLayout={(data, index) => ({
-                length: 100,
-                offset: 100 * index,
-                index,
-              })}
-              renderItem={({item}) => (
-                <View style={styles.productContainer}>
-                  <TouchableOpacity
-                    onPress={() =>
-                      navigation.navigate('ProductDetails', {product: item})
-                    }>
-                    <View style={styles.heartcontainer}>
-                      <TouchableOpacity onPress={() => toggleWishlist(item.id)}>
-                        {wishlist[item.id] ? (
-                          <Heratfill height={20} width={20} />
-                        ) : (
-                          <Heart height={20} width={20} />
-                        )}
+              </View>
+
+              <View style={styles.categorywraper}>
+                <View>
+                  <Text style={styles.sectionTitle}>Categories</Text>
+                </View>
+                <View style={styles.viewContainer}>
+                  <Pressable>
+                    <Text style={styles.viewtitle}>View All</Text>
+                  </Pressable>
+                </View>
+              </View>
+
+              <View style={styles.catcontainer}>
+                <FlatList
+                  horizontal
+                  data={icondata}
+                  keyExtractor={item => item.id}
+                  keyboardShouldPersistTaps="handled"
+                  initialNumToRender={5}
+                  maxToRenderPerBatch={3}
+                  renderItem={({item}) => (
+                    <View>
+                      <TouchableOpacity>
+                        <View style={styles.iconcontainer}>{item.icon}</View>
+                        <View style={styles.nametxtcontainer}>
+                          <Text style={styles.nametxt}>{item.name}</Text>
+                        </View>
                       </TouchableOpacity>
                     </View>
-                    <Image
-                      source={{uri: item.category.image}}
-                      style={styles.productImage}
-                    />
-                    <Text style={styles.productTitle}>{item.title}</Text>
-                    <Text style={styles.productPrice}>${item.price}</Text>
-                    <View style={styles.ratingcontainer}>
-                      <Rating />
-                      <Text>4.8 (120)</Text>
+                  )}
+                  nestedScrollEnabled={true}
+                />
+              </View>
+              <View style={styles.carouselContainer}>
+                <Carousel
+                  width={width * 0.9}
+                  height={height * 0.25}
+                  autoPlay={true}
+                  autoPlayInterval={3000}
+                  loop
+                  data={banners}
+                  scrollAnimationDuration={1000}
+                  onSnapToItem={index => setActiveIndex(index)}
+                  renderItem={({item}) => (
+                    <View style={styles.bannerWrapper}>
+                      <Image source={item.image} style={styles.bannerImage} />
                     </View>
-                  </TouchableOpacity>
+                  )}
+                />
+                <View style={styles.pagination}>
+                  {banners.map((_, i) => (
+                    <View
+                      key={i}
+                      style={[
+                        styles.dot,
+                        activeIndex === i
+                          ? styles.activeDot
+                          : styles.inactiveDot,
+                      ]}
+                    />
+                  ))}
                 </View>
-              )}
-            />
-          </View>
+              </View>
+              <View style={styles.hottxtcontainer}>
+                <Text style={styles.hottxt}>Hot Deals</Text>
+              </View>
+              <View style={styles.productwrapper}>
+                <FlatList
+                  data={filteredProducts?.slice(0,10)}
+                  numColumns={2}
+                  keyExtractor={item => item.id.toString()}
+                  showsHorizontalScrollIndicator={false}
+                  getItemLayout={(data, index) => ({
+                    length: 100,
+                    offset: 100 * index,
+                    index,
+                  })}
+                  renderItem={({item}) => (
+                    <View style={styles.productContainer}>
+                      <TouchableOpacity
+                        onPress={() =>
+                          navigation.navigate('ProductDetails', {product: item})
+                        }>
+                        <View style={styles.heartcontainer}>
+                          <TouchableOpacity
+                            onPress={() => toggleWishlist(item.id)}>
+                            {wishlist[item.id] ? (
+                              <Heratfill height={20} width={20} />
+                            ) : (
+                              <Heart height={20} width={20} />
+                            )}
+                          </TouchableOpacity>
+                        </View>
+                        <Image
+                          source={{uri: item.category.image}}
+                          style={styles.productImage}
+                        />
+                        <Text style={styles.productTitle}>{item.title}</Text>
+                        <Text style={styles.productPrice}>${item.price}</Text>
+                        <View style={styles.ratingcontainer}>
+                          <Rating />
+                          <Text>4.8 (120)</Text>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  nestedScrollEnabled={true}
+                  scrollEnabled={false}
+                />
+              </View>
+            </View>
           </ScrollView>
-        </SafeAreaView>
-      
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </TouchableWithoutFeedback>
   );
 }
