@@ -9,8 +9,9 @@ import {
   View,
   FlatList,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import Backarrow from '../assets/Icons/Backarrow.svg';
 import Rating from '../assets/Icons/Rating.svg';
@@ -75,6 +76,20 @@ export default function ProductDetails({route}) {
   const {product} = route.params;
 
   const [selectedColor, setSelectedColor] = useState(colors[2]);
+  const [selectedSize, setSelecteSize] = useState(sizes[2]);
+  const [imageLoading, setImageLoading] = useState(true);
+  const [loadingStates, setLoadingStates] = useState({});
+
+  useEffect(() => {
+
+    if (product.images && product.images.length > 0) {
+      const initialLoadingStates = product.images.reduce((acc, _, index) => {
+        acc[index] = true;
+        return acc;
+      }, {});
+      setLoadingStates(initialLoadingStates);
+    }
+  }, [product]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -85,12 +100,15 @@ export default function ProductDetails({route}) {
         <Text style={styles.headertxt}>Product Details</Text>
       </View>
       <ScrollView contentContainerStyle={{paddingBottom: 100}}>
-        {product.category?.image && (
+      <View style={styles.imageContainer}>
+          {imageLoading && <ActivityIndicator size="large" color="#452CE8" style={styles.imageLoader} />}
           <Image
-            source={{uri: product.category.image}}
+            source={{ uri: product?.category?.image || 'https://via.placeholder.com/150' }}
             style={styles.productImage}
+            onLoad={() => setImageLoading(false)}
+            onError={() => setImageLoading(false)}
           />
-        )}
+        </View>
 
         {product.images && product.images.length > 0 && (
           <View style={styles.carouselContainer}>
@@ -100,9 +118,15 @@ export default function ProductDetails({route}) {
               showsHorizontalScrollIndicator={false}
               nestedScrollEnabled={true}
               keyExtractor={(item, index) => index.toString()}
-              renderItem={({item}) => (
+              renderItem={({item,index}) => (
                 <View style={styles.imageWrapper}>
-                  <Image source={{uri: item}} style={styles.thumbnail} />
+                  {loadingStates[index] && <ActivityIndicator size="small" color="#452CE8" style={styles.imageLoader} />}
+                  <Image
+                    source={{ uri: item }}
+                    style={styles.thumbnail}
+                    onLoad={() => setLoadingStates((prev) => ({ ...prev, [index]: false }))}
+                    onError={() => setLoadingStates((prev) => ({ ...prev, [index]: false }))}
+                  />
                 </View>
               )}
             />
@@ -150,8 +174,16 @@ export default function ProductDetails({route}) {
             keyExtractor={item => item.id}
             renderItem={({item}) => (
               <View>
-                <TouchableOpacity>
-                  <View style={styles.chartincontainer}>
+                <TouchableOpacity onPress={() => setSelecteSize(item)}>
+                  <View
+                    style={[
+                      styles.chartincontainer,
+                      {
+                        backgroundColor:
+                          selectedSize.id === item.id ? '#452CE8' : '#FFFFFF',
+                          
+                      },
+                    ]}>
                     <Text style={styles.charttxt}>{item.size}</Text>
                   </View>
                 </TouchableOpacity>
@@ -215,7 +247,6 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.03,
   },
   headertxt: {
-
     fontSize: fontSize(24),
   },
   productImage: {

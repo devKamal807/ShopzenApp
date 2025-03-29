@@ -1,4 +1,5 @@
 import {
+  ActivityIndicator,
   Dimensions,
   FlatList,
   Image,
@@ -96,6 +97,7 @@ export default function Home() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [data, setData] = useState();
   const [wishlist, setWishlist] = useState({});
+  const [loading, setLoading] = useState(true);
 
   const toggleWishlist = productId => {
     setWishlist(prevState => ({
@@ -107,10 +109,13 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true)
         const res = await axios.get('https://api.escuelajs.co/api/v1/products');
         setData(res.data);
       } catch (error) {
         console.error('Error fetching products:', error);
+      }finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -174,6 +179,7 @@ export default function Home() {
               <View style={styles.catcontainer}>
                 <FlatList
                   horizontal
+                  showsHorizontalScrollIndicator={false}
                   data={icondata}
                   keyExtractor={item => item.id}
                   keyboardShouldPersistTaps="handled"
@@ -197,10 +203,11 @@ export default function Home() {
                   width={width * 0.9}
                   height={height * 0.25}
                   autoPlay={true}
-                  autoPlayInterval={3000}
+                  autoPlayInterval={2000}
                   loop
                   data={banners}
-                  scrollAnimationDuration={1000}
+                  useScrollView={true}
+                  scrollAnimationDuration={500}
                   onSnapToItem={index => setActiveIndex(index)}
                   renderItem={({item}) => (
                     <View style={styles.bannerWrapper}>
@@ -225,6 +232,11 @@ export default function Home() {
               <View style={styles.hottxtcontainer}>
                 <Text style={styles.hottxt}>Hot Deals</Text>
               </View>
+              {loading ? (
+                <View style={styles.loaderContainer}>
+                  <ActivityIndicator size="large" color="#452CE8" />
+                </View>
+              ) : (
               <View style={styles.productwrapper}>
                 <FlatList
                   data={filteredProducts?.slice(0,10)}
@@ -242,6 +254,7 @@ export default function Home() {
                         onPress={() =>
                           navigation.navigate('ProductDetails', {product: item})
                         }>
+
                         <View style={styles.heartcontainer}>
                           <TouchableOpacity
                             onPress={() => toggleWishlist(item.id)}>
@@ -269,6 +282,7 @@ export default function Home() {
                   scrollEnabled={false}
                 />
               </View>
+              )}
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
