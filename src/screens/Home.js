@@ -121,6 +121,9 @@ export default function Home() {
     fetchData();
   }, []);
   const filteredProducts = Array.isArray(data)
+
+
+  
   ? data.filter(item =>
       item?.title?.toLowerCase().includes(search.trim().toLowerCase())
     )
