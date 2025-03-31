@@ -1,4 +1,5 @@
 import {
+  Alert,
   Dimensions,
   PixelRatio,
   SafeAreaView,
@@ -13,6 +14,7 @@ import Appleicon from '../assets/Icons/Appleicon.svg';
 import {useNavigation} from '@react-navigation/native';
 import {GoogleSignin} from '@react-native-google-signin/google-signin';
 import auth from '@react-native-firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const {width, height} = Dimensions.get('window');
 const fontSize = size => PixelRatio.getFontScale() * size;
@@ -27,44 +29,50 @@ export default function GoogleLogin() {
     });
   }, []);
 
-  const signInWithGoogle = async () => {
+  const handleGoogleLogin = async () => {
     try {
-      await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
+      await GoogleSignin.hasPlayServices();
 
+      // ✅ Sign out first to force account selection
       await GoogleSignin.signOut();
-      const idToken = await GoogleSignin.signIn();
-      console.log('Google Sign-In Success, idToken:', idToken);
-      const googleCredential = auth.GoogleAuthProvider.credential(
-        idToken.data.idToken,
-      );
+
+      const userInfo = await GoogleSignin.signIn();
+
+      console.log('Google Sign-In Success:', JSON.stringify(userInfo, null, 2));
+
+      // ✅ Correct way to extract idToken
+      const idToken = userInfo?.idToken || userInfo?.data?.idToken;
+
+      if (!idToken) {
+        console.error('Google Sign-In Error: No ID Token found.');
+        Alert.alert('Login Failed', 'No ID Token received from Google.');
+        return;
+      }
+
+      console.log('Extracted ID Token:', idToken);
+
+      // ✅ Authenticate with Firebase
+      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       await auth().signInWithCredential(googleCredential);
-      console.log('User signed in with Google!');
-    } catch (err) {
-      console.log('sign in failed', err);
-      if (err.code) {
-        console.log('Error code:', err.code);
-      }
-      if (err.message) {
-        console.log('Error message:', err.message);
-      }
+
+      await AsyncStorage.setItem('isLoggedIn', 'true');
+      navigation.replace('TabNavigation');
+    } catch (error) {
+      console.error('Google Sign-In Error:', error);
+      Alert.alert(
+        'Login Failed',
+        error.message || 'An unexpected error occurred.',
+      );
     }
   };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headertxtcontainer}>
         <Text style={styles.headertxt}>Login to ShopZen</Text>
       </View>
       <View style={styles.logbtncontainer}>
-        <TouchableOpacity
-          style={styles.google}
-          onPress={async () => {
-            try {
-              await signInWithGoogle();
-              navigation.navigate('TabNavigation');
-            } catch (error) {
-              console.error('Google Sign-In Error:', error);
-            }
-          }}>
+        <TouchableOpacity style={styles.google} onPress={handleGoogleLogin}>
           <GoogleIcon />
           <Text>Login with Google</Text>
         </TouchableOpacity>

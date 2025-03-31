@@ -8,6 +8,9 @@ import HomeIcon from '../assets/Icons/Home.svg';
 import HeartIcon from '../assets/Icons/Heart.svg';
 import UserIcon from '../assets/Icons/UserIcon.svg';
 import {View, Text, StyleSheet, Dimensions, PixelRatio} from 'react-native';
+import Hearttab from '../assets/Icons/Hearttab.svg';
+import Homefill from '../assets/Icons/Homefill.svg';
+import Userfill from '../assets/Icons/Userfill.svg';
 
 const Tab = createBottomTabNavigator();
 
@@ -24,15 +27,16 @@ export default function TabNavigation() {
           let label;
 
           if (route.name === 'Home') {
-            IconComponent = HomeIcon;
+            IconComponent = focused ? Homefill : HomeIcon;
             label = 'Home';
           } else if (route.name === 'Saved') {
-            IconComponent = HeartIcon;
+            IconComponent = focused ? Hearttab : HeartIcon;
             label = 'Saved';
           } else if (route.name === 'Account') {
-            IconComponent = UserIcon;
+            IconComponent = focused ? Userfill : UserIcon;
             label = 'Account';
           }
+          
 
           return (
             <View style={styles.iconContainer}>

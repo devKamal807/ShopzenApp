@@ -16,6 +16,7 @@ import {useNavigation} from '@react-navigation/native';
 import Backarrow from '../assets/Icons/Backarrow.svg';
 import Rating from '../assets/Icons/Rating.svg';
 import Down from '../assets/Icons/Downarrow.svg';
+import firestore from '@react-native-firebase/firestore';
 
 const {width, height} = Dimensions.get('window');
 const fontSize = size => PixelRatio.getFontScale() * size;
@@ -79,17 +80,53 @@ export default function ProductDetails({route}) {
   const [selectedSize, setSelecteSize] = useState(sizes[2]);
   const [imageLoading, setImageLoading] = useState(true);
   const [loadingStates, setLoadingStates] = useState({});
+  const [wishlist, setWishlist] = useState({});
 
   useEffect(() => {
-
-    if (product.images && product.images.length > 0) {
-      const initialLoadingStates = product.images.reduce((acc, _, index) => {
-        acc[index] = true;
-        return acc;
-      }, {});
-      setLoadingStates(initialLoadingStates);
+    if (product.images?.length > 0) {
+      setLoadingStates(
+        product.images.reduce((acc, _, index) => ({...acc, [index]: true}), {}),
+      );
     }
   }, [product]);
+
+  useEffect(() => {
+    const checkWishlist = async () => {
+      const wishlistRef = firestore()
+        .collection('wishlist')
+        .doc(product.id.toString());
+      const doc = await wishlistRef.get();
+
+      if (doc.exists) {
+        setWishlist(prev => ({...prev, [product.id]: true}));
+      }
+    };
+    checkWishlist();
+  }, [product]);
+
+  const toggleWishlist = async () => {
+    const {
+      id,
+      title,
+      price,
+      images,
+      category: {image},
+    } = product;
+    const wishlistRef = firestore().collection('wishlist').doc(id.toString());
+    console.log('images', images);
+
+    setWishlist(prev => ({...prev, [id]: !prev[id]}));
+
+    try {
+      if (wishlist[id]) {
+        await wishlistRef.delete();
+      } else {
+        await wishlistRef.set({id, title, price, images, category: {image}});
+      }
+    } catch (error) {
+      console.error('Error updating wishlist:', error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -100,10 +137,19 @@ export default function ProductDetails({route}) {
         <Text style={styles.headertxt}>Product Details</Text>
       </View>
       <ScrollView contentContainerStyle={{paddingBottom: 100}}>
-      <View style={styles.imageContainer}>
-          {imageLoading && <ActivityIndicator size="large" color="#452CE8" style={styles.imageLoader} />}
+        <View style={styles.imageContainer}>
+          {imageLoading && (
+            <ActivityIndicator
+              size="large"
+              color="#452CE8"
+              style={styles.imageLoader}
+            />
+          )}
           <Image
-            source={{ uri: product?.category?.image || 'https://via.placeholder.com/150' }}
+            source={{
+              uri:
+                product?.category?.image || 'https://via.placeholder.com/150',
+            }}
             style={styles.productImage}
             onLoad={() => setImageLoading(false)}
             onError={() => setImageLoading(false)}
@@ -118,14 +164,24 @@ export default function ProductDetails({route}) {
               showsHorizontalScrollIndicator={false}
               nestedScrollEnabled={true}
               keyExtractor={(item, index) => index.toString()}
-              renderItem={({item,index}) => (
+              renderItem={({item, index}) => (
                 <View style={styles.imageWrapper}>
-                  {loadingStates[index] && <ActivityIndicator size="small" color="#452CE8" style={styles.imageLoader} />}
+                  {loadingStates[index] && (
+                    <ActivityIndicator
+                      size="small"
+                      color="#452CE8"
+                      style={styles.imageLoader}
+                    />
+                  )}
                   <Image
-                    source={{ uri: item }}
+                    source={{uri: item}}
                     style={styles.thumbnail}
-                    onLoad={() => setLoadingStates((prev) => ({ ...prev, [index]: false }))}
-                    onError={() => setLoadingStates((prev) => ({ ...prev, [index]: false }))}
+                    onLoad={() =>
+                      setLoadingStates(prev => ({...prev, [index]: false}))
+                    }
+                    onError={() =>
+                      setLoadingStates(prev => ({...prev, [index]: false}))
+                    }
                   />
                 </View>
               )}
@@ -181,7 +237,6 @@ export default function ProductDetails({route}) {
                       {
                         backgroundColor:
                           selectedSize.id === item.id ? '#452CE8' : '#FFFFFF',
-                          
                       },
                     ]}>
                     <Text style={styles.charttxt}>{item.size}</Text>
@@ -224,8 +279,16 @@ export default function ProductDetails({route}) {
         <View style={styles.line} />
 
         <View style={styles.btncontainer}>
-          <TouchableOpacity style={styles.btn}>
-            <Text style={styles.btntxt}>Add Wishlist</Text>
+          <TouchableOpacity
+            style={styles.btn}
+            onPress={() => {
+              toggleWishlist(product);
+            }}>
+            <Text style={styles.btntxt}>
+              {wishlist[product.id]
+                ? 'Remove from Wishlist'
+                : 'Add to Wishlist'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -1,4 +1,5 @@
 import {
+  Alert,
   Dimensions,
   PixelRatio,
   SafeAreaView,
@@ -21,12 +22,25 @@ import Invite from '../assets/Icons/Invite.svg';
 import Logout from '../assets/Icons/Logout.svg';
 
 import {useNavigation} from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import auth from '@react-native-firebase/auth';
 
 const {width, height} = Dimensions.get('window');
 const fontSize = size => PixelRatio.getFontScale() * size;
 
 export default function Account() {
   const navigation = useNavigation();
+
+  const handleLogout = async () => {
+    try {
+      await auth().signOut();
+      await AsyncStorage.removeItem('isLoggedIn'); // Remove login status
+      navigation.replace('GoogleLogin'); // Navigate to login screen
+    } catch (error) {
+      Alert.alert('Logout Failed', error.message);
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headercontainer}>
@@ -121,10 +135,7 @@ export default function Account() {
 
       <View style={styles.logoutcontainer}>
         <Logout />
-        <TouchableOpacity
-          onPress={() => {
-            navigation.navigate('GoogleLogin');
-          }}>
+        <TouchableOpacity onPress={handleLogout}>
           <Text style={styles.logouttxt}>Log Out</Text>
         </TouchableOpacity>
       </View>

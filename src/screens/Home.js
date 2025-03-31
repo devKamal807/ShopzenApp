@@ -28,11 +28,12 @@ import Sofa from '../assets/Icons/Sofa.svg';
 import Game from '../assets/Icons/Game.svg';
 import Pencil from '../assets/Icons/Pencil.svg';
 import Carousel from 'react-native-reanimated-carousel';
-import axios from 'axios';
 
+import axios from 'axios';
+import firestore from '@react-native-firebase/firestore';
 import Rating from '../assets/Icons/Rating.svg';
 import Heart from '../assets/Icons/Heart.svg';
-import Heratfill from '../assets/Icons/Heartfill.svg';
+import Heartfill from '../assets/Icons/Heartfill.svg';
 import {useNavigation} from '@react-navigation/native';
 
 const {width, height} = Dimensions.get('window');
@@ -99,35 +100,61 @@ export default function Home() {
   const [wishlist, setWishlist] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const toggleWishlist = productId => {
-    setWishlist(prevState => ({
-      ...prevState,
-      [productId]: !prevState[productId],
-    }));
+  const toggleWishlist = async product => {
+    const {
+      id,
+      title,
+      price,
+      images,
+      category: {image},
+    } = product;
+
+    const wishlistRef = firestore().collection('wishlist').doc(id.toString());
+
+    if (wishlist[id]) {
+      setWishlist(prev => ({...prev, [id]: false}));
+      await wishlistRef.delete();
+    } else {
+      setWishlist(prev => ({...prev, [id]: true}));
+      await wishlistRef.set({id, title, price, images, category: {image}});
+    }
   };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
         const res = await axios.get('https://api.escuelajs.co/api/v1/products');
         setData(res.data);
       } catch (error) {
         console.error('Error fetching products:', error);
-      }finally {
+      } finally {
         setLoading(false);
       }
     };
+
+    const fetchWishlist = async () => {
+      const unsubscribe = firestore()
+        .collection('wishlist')
+        .onSnapshot(snapshot => {
+          const updatedWishlist = {};
+          snapshot.docs.forEach(doc => {
+            updatedWishlist[doc.id] = true;
+          });
+          setWishlist(updatedWishlist);
+        });
+
+      return () => unsubscribe();
+    };
+    fetchWishlist();
     fetchData();
   }, []);
+
   const filteredProducts = Array.isArray(data)
-
-
-  
-  ? data.filter(item =>
-      item?.title?.toLowerCase().includes(search.trim().toLowerCase())
-    )
-  : [];
+    ? data.filter(item =>
+        item?.title?.toLowerCase().includes(search.trim().toLowerCase()),
+      )
+    : [];
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -136,9 +163,8 @@ export default function Home() {
           behavior={Platform.OS === 'android' ? 'padding' : 'height'}
           style={{flex: 1}}>
           <ScrollView
-            contentContainerStyle={{flexGrow: 1,paddingBottom: 100}}
+            contentContainerStyle={{flexGrow: 1, paddingBottom: 100}}
             keyboardShouldPersistTaps="handled"
-            
             showsVerticalScrollIndicator={false}>
             <View style={{flex: 1}}>
               <View style={styles.topcontainer}>
@@ -240,51 +266,52 @@ export default function Home() {
                   <ActivityIndicator size="large" color="#452CE8" />
                 </View>
               ) : (
-              <View style={styles.productwrapper}>
-                <FlatList
-                  data={filteredProducts?.slice(0,10)}
-                  numColumns={2}
-                  keyExtractor={item => item.id.toString()}
-                  showsHorizontalScrollIndicator={false}
-                  getItemLayout={(data, index) => ({
-                    length: 100,
-                    offset: 100 * index,
-                    index,
-                  })}
-                  renderItem={({item}) => (
-                    <View style={styles.productContainer}>
-                      <TouchableOpacity
-                        onPress={() =>
-                          navigation.navigate('ProductDetails', {product: item})
-                        }>
-
-                        <View style={styles.heartcontainer}>
-                          <TouchableOpacity
-                            onPress={() => toggleWishlist(item.id)}>
-                            {wishlist[item.id] ? (
-                              <Heratfill height={20} width={20} />
-                            ) : (
-                              <Heart height={20} width={20} />
-                            )}
-                          </TouchableOpacity>
-                        </View>
-                        <Image
-                          source={{uri: item.category.image}}
-                          style={styles.productImage}
-                        />
-                        <Text style={styles.productTitle}>{item.title}</Text>
-                        <Text style={styles.productPrice}>${item.price}</Text>
-                        <View style={styles.ratingcontainer}>
-                          <Rating />
-                          <Text>4.8 (120)</Text>
-                        </View>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                  nestedScrollEnabled={true}
-                  scrollEnabled={false}
-                />
-              </View>
+                <View style={styles.productwrapper}>
+                  <FlatList
+                    data={filteredProducts?.slice(0, 10)}
+                    numColumns={2}
+                    keyExtractor={item => item.id.toString()}
+                    showsHorizontalScrollIndicator={false}
+                    getItemLayout={(data, index) => ({
+                      length: 100,
+                      offset: 100 * index,
+                      index,
+                    })}
+                    renderItem={({item}) => (
+                      <View style={styles.productContainer}>
+                        <TouchableOpacity
+                          onPress={() =>
+                            navigation.navigate('ProductDetails', {
+                              product: item,
+                            })
+                          }>
+                          <View style={styles.heartcontainer}>
+                            <TouchableOpacity
+                              onPress={() => toggleWishlist(item)}>
+                              {wishlist[item.id] ? (
+                                <Heartfill height={20} width={20} />
+                              ) : (
+                                <Heart height={20} width={20} />
+                              )}
+                            </TouchableOpacity>
+                          </View>
+                          <Image
+                            source={{uri: item.category.image}}
+                            style={styles.productImage}
+                          />
+                          <Text style={styles.productTitle}>{item.title}</Text>
+                          <Text style={styles.productPrice}>${item.price}</Text>
+                          <View style={styles.ratingcontainer}>
+                            <Rating />
+                            <Text>4.8 (120)</Text>
+                          </View>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                    nestedScrollEnabled={true}
+                    scrollEnabled={false}
+                  />
+                </View>
               )}
             </View>
           </ScrollView>
