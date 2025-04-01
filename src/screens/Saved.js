@@ -19,6 +19,7 @@ import Bell from '../assets/Icons/Bell.svg';
 import Rating from '../assets/Icons/Rating.svg';
 import Heart from '../assets/Icons/Heart.svg';
 import Heartfill from '../assets/Icons/Heartfill.svg';
+import auth from '@react-native-firebase/auth';
 
 const {width, height} = Dimensions.get('window');
 const fontSize = size => PixelRatio.getFontScale() * size;
@@ -27,23 +28,44 @@ export default function Saved() {
   const navigation = useNavigation();
 
   const [wishlistItems, setWishlistItems] = useState([]);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    const unsubscribe = firestore()
-      .collection('wishlist')
-      .onSnapshot(snapshot => {
-        setWishlistItems(snapshot.docs.map(doc => doc.data()));
-      });
+    const user = auth().currentUser;
+    setUserId(user ? user.uid : null);
 
-    return () => unsubscribe();
-  }, []);
+    if (userId) {
+      const unsubscribe = firestore()
+        .collection('users')
+        .doc(userId)
+        .collection('wishlist')
+        .onSnapshot(snapshot => {
+          setWishlistItems(snapshot.docs.map(doc => doc.data()));
+        });
+
+      return () => unsubscribe();
+    }
+  }, [userId]);
 
   const toggleWishlist = async item => {
+    if (!userId) return;
+
     try {
-      await firestore().collection('wishlist').doc(item.id.toString()).delete();
-      setWishlistItems(prevItems => prevItems.filter(i => i.id !== item.id));
+      const itemRef = firestore()
+        .collection('users')
+        .doc(userId)
+        .collection('wishlist')
+        .doc(item.id.toString());
+
+      if (wishlistItems.find(i => i.id === item.id)) {
+        await itemRef.delete();
+        setWishlistItems(prevItems => prevItems.filter(i => i.id !== item.id));
+      } else {
+        await itemRef.set(item);
+        setWishlistItems(prevItems => [...prevItems, item]);
+      }
     } catch (error) {
-      console.error('Error removing from wishlist:', error);
+      console.error('Error updating wishlist:', error);
     }
   };
 

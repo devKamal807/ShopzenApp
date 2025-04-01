@@ -17,6 +17,7 @@ import Backarrow from '../assets/Icons/Backarrow.svg';
 import Rating from '../assets/Icons/Rating.svg';
 import Down from '../assets/Icons/Downarrow.svg';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
 
 const {width, height} = Dimensions.get('window');
 const fontSize = size => PixelRatio.getFontScale() * size;
@@ -92,13 +93,23 @@ export default function ProductDetails({route}) {
 
   useEffect(() => {
     const checkWishlist = async () => {
+      const userId = auth().currentUser?.uid;
+      if (!userId) {
+        console.error('User not logged in');
+        return;
+      }
+
       const wishlistRef = firestore()
+        .collection('users')
+        .doc(userId)
         .collection('wishlist')
         .doc(product.id.toString());
       const doc = await wishlistRef.get();
 
       if (doc.exists) {
         setWishlist(prev => ({...prev, [product.id]: true}));
+      } else {
+        setWishlist(prev => ({...prev, [product.id]: false}));
       }
     };
     checkWishlist();
@@ -112,8 +123,18 @@ export default function ProductDetails({route}) {
       images,
       category: {image},
     } = product;
-    const wishlistRef = firestore().collection('wishlist').doc(id.toString());
-    console.log('images', images);
+    const userId = auth().currentUser?.uid;
+
+    if (!userId) {
+      console.error('User not logged in');
+      return;
+    }
+
+    const wishlistRef = firestore()
+      .collection('users')
+      .doc(userId)
+      .collection('wishlist')
+      .doc(id.toString());
 
     setWishlist(prev => ({...prev, [id]: !prev[id]}));
 
@@ -121,9 +142,10 @@ export default function ProductDetails({route}) {
       if (wishlist[id]) {
         await wishlistRef.delete();
       } else {
-        await wishlistRef.set({id, title, price, images, category: {image}});
+        await wishlistRef.set({id, title, price, images, category: {image}}); // Add product to user's wishlist
       }
     } catch (error) {
+      setWishlist(prev => ({...prev, [id]: !prev[id]}));
       console.error('Error updating wishlist:', error);
     }
   };

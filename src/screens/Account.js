@@ -35,8 +35,8 @@ export default function Account() {
   const handleLogout = async () => {
     try {
       await auth().signOut();
-      await AsyncStorage.removeItem('isLoggedIn'); // Remove login status
-      navigation.replace('GoogleLogin'); // Navigate to login screen
+      await AsyncStorage.removeItem('isLoggedIn');
+      navigation.replace('GoogleLogin');
     } catch (error) {
       Alert.alert('Logout Failed', error.message);
     }

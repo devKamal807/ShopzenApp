@@ -23,6 +23,7 @@ import {useNavigation} from '@react-navigation/native';
 import auth from '@react-native-firebase/auth';
 
 import Success from '../assets/Icons/Success.svg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const {width, height} = Dimensions.get('window');
 const fontSize = size => PixelRatio.getFontScale() * size;
@@ -43,15 +44,19 @@ export default function SignupwithEmail() {
   const navigation = useNavigation();
   const registerUser = async () => {
     try {
-      await auth().createUserWithEmailAndPassword(
+      const userCredential = await auth().createUserWithEmailAndPassword(
         email,
         password,
-        confirmpassword,
       );
-      console.log('✅ User account created');
+      const user = userCredential.user;
+
+      console.log(' User account created', user.uid);
+
+      await AsyncStorage.setItem('userId', user.uid);
+
       setModalVisible(true);
     } catch (error) {
-      console.error(' Registration Error:', error);
+      console.error('Registration Error:', error);
       let errorMessage = 'Registration failed. Please try again.';
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'That email address is already in use!';

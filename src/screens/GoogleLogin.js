@@ -33,14 +33,12 @@ export default function GoogleLogin() {
     try {
       await GoogleSignin.hasPlayServices();
 
-      // ✅ Sign out first to force account selection
       await GoogleSignin.signOut();
 
       const userInfo = await GoogleSignin.signIn();
 
       console.log('Google Sign-In Success:', JSON.stringify(userInfo, null, 2));
 
-      // ✅ Correct way to extract idToken
       const idToken = userInfo?.idToken || userInfo?.data?.idToken;
 
       if (!idToken) {
@@ -51,11 +49,17 @@ export default function GoogleLogin() {
 
       console.log('Extracted ID Token:', idToken);
 
-      // ✅ Authenticate with Firebase
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      await auth().signInWithCredential(googleCredential);
+      const userCredential = await auth().signInWithCredential(
+        googleCredential,
+      );
+
+      const user = userCredential.user;
+      console.log(' User account created', user.uid);
+      await AsyncStorage.setItem('userId', user.uid);
 
       await AsyncStorage.setItem('isLoggedIn', 'true');
+
       navigation.replace('TabNavigation');
     } catch (error) {
       console.error('Google Sign-In Error:', error);

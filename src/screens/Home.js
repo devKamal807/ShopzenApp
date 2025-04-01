@@ -35,6 +35,7 @@ import Rating from '../assets/Icons/Rating.svg';
 import Heart from '../assets/Icons/Heart.svg';
 import Heartfill from '../assets/Icons/Heartfill.svg';
 import {useNavigation} from '@react-navigation/native';
+import auth from '@react-native-firebase/auth';
 
 const {width, height} = Dimensions.get('window');
 const fontSize = size => PixelRatio.getFontScale() * size;
@@ -99,6 +100,7 @@ export default function Home() {
   const [data, setData] = useState();
   const [wishlist, setWishlist] = useState({});
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
 
   const toggleWishlist = async product => {
     const {
@@ -109,7 +111,16 @@ export default function Home() {
       category: {image},
     } = product;
 
-    const wishlistRef = firestore().collection('wishlist').doc(id.toString());
+    if (!userId) {
+      alert('Please log in to add items to your wishlist');
+      return;
+    }
+
+    const wishlistRef = firestore()
+      .collection('users')
+      .doc(userId)
+      .collection('wishlist')
+      .doc(id.toString());
 
     if (wishlist[id]) {
       setWishlist(prev => ({...prev, [id]: false}));
@@ -121,6 +132,11 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const fetchUserId = () => {
+      const user = auth().currentUser;
+      setUserId(user ? user.uid : null); // Set the userId if logged in, else null
+    };
+
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -134,7 +150,11 @@ export default function Home() {
     };
 
     const fetchWishlist = async () => {
+      if (!userId) return;
+
       const unsubscribe = firestore()
+        .collection('users')
+        .doc(userId)
         .collection('wishlist')
         .onSnapshot(snapshot => {
           const updatedWishlist = {};
@@ -146,9 +166,11 @@ export default function Home() {
 
       return () => unsubscribe();
     };
+
+    fetchUserId();
     fetchWishlist();
     fetchData();
-  }, []);
+  }, [userId]);
 
   const filteredProducts = Array.isArray(data)
     ? data.filter(item =>

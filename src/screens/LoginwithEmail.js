@@ -44,6 +44,7 @@ export default function LoginwithEmail() {
         password,
       );
       console.log('User signed in:', userCredential.user);
+      console.log('User ID:', userCredential.user.uid);
       setModalVisible(true);
     } catch (error) {
       console.error('Sign-in error:', error);
