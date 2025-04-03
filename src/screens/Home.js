@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
   FlatList,
   Image,
@@ -28,6 +29,7 @@ import Sofa from '../assets/Icons/Sofa.svg';
 import Game from '../assets/Icons/Game.svg';
 import Pencil from '../assets/Icons/Pencil.svg';
 import Carousel from 'react-native-reanimated-carousel';
+import Menu from '../assets/Icons/MenuIcon.svg';
 
 import axios from 'axios';
 import firestore from '@react-native-firebase/firestore';
@@ -101,6 +103,7 @@ export default function Home() {
   const [wishlist, setWishlist] = useState({});
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
+  const [modalVisible, setModalVisible] = useState({});
 
   const toggleWishlist = async product => {
     const {
@@ -134,7 +137,7 @@ export default function Home() {
   useEffect(() => {
     const fetchUserId = () => {
       const user = auth().currentUser;
-      setUserId(user ? user.uid : null); // Set the userId if logged in, else null
+      setUserId(user ? user.uid : null);
     };
 
     const fetchData = async () => {
@@ -171,6 +174,31 @@ export default function Home() {
     fetchWishlist();
     fetchData();
   }, [userId]);
+
+  const handleDelete = async id => {
+    Alert.alert('Confirm', 'Are you sure you want to delete this product?', [
+      {text: 'Cancel', style: 'cancel'},
+      {
+        text: 'Delete',
+        onPress: async () => {
+          try {
+            await axios.delete(
+              `https://api.escuelajs.co/api/v1/products/${id}`,
+            );
+            setData(prevData => prevData.filter(item => item.id !== id));
+
+            setModalVisible(prev => {
+              const updatedState = {...prev};
+              delete updatedState[id];
+              return updatedState;
+            });
+          } catch (error) {
+            console.error('Error deleting item:', error);
+          }
+        },
+      },
+    ]);
+  };
 
   const filteredProducts = Array.isArray(data)
     ? data.filter(item =>
@@ -290,7 +318,7 @@ export default function Home() {
               ) : (
                 <View style={styles.productwrapper}>
                   <FlatList
-                    data={filteredProducts?.slice(0, 10)}
+                    data={filteredProducts}
                     numColumns={2}
                     keyExtractor={item => item.id.toString()}
                     showsHorizontalScrollIndicator={false}
@@ -317,6 +345,38 @@ export default function Home() {
                               )}
                             </TouchableOpacity>
                           </View>
+                          <View style={styles.menucontainer}>
+                            <TouchableOpacity
+                              onPress={() =>
+                                setModalVisible(prev => ({
+                                  ...prev,
+                                  [item.id]: !prev[item.id],
+                                }))
+                              }>
+                              <Menu />
+                            </TouchableOpacity>
+                          </View>
+                          {modalVisible[item.id] && (
+                            <View style={styles.menuitemcontainer}>
+                              <TouchableOpacity
+                                style={styles.editcontainer}
+                                onPress={() => {
+                                  navigation.navigate('EditProduct', {
+                                    product: item,
+                                  });
+                                }}>
+                                <Text style={styles.menutxt}>Edit</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                style={styles.dltcontainer}
+                                onPress={() =>
+                                  item.id && handleDelete(item.id)
+                                }>
+                                <Text style={styles.menutxt}>Delete</Text>
+                              </TouchableOpacity>
+                            </View>
+                          )}
+
                           <Image
                             source={{uri: item.category.image}}
                             style={styles.productImage}
@@ -337,6 +397,15 @@ export default function Home() {
               )}
             </View>
           </ScrollView>
+          <View style={styles.addbtncontainer}>
+            <TouchableOpacity
+              style={styles.addbtn}
+              onPress={() => {
+                navigation.navigate('AddProduct');
+              }}>
+              <Text style={styles.addtxt}>Add Product</Text>
+            </TouchableOpacity>
+          </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </TouchableWithoutFeedback>
@@ -526,11 +595,67 @@ const styles = StyleSheet.create({
   },
   heartcontainer: {
     position: 'absolute',
-    top: height * 0.01,
-    right: width * 0.02,
+    marginTop: height * 0.005,
+    marginLeft: width * 0.01,
     borderRadius: 5,
     zIndex: 1,
     backgroundColor: '#FBFBFC80',
     padding: 3,
+  },
+  menucontainer: {
+    position: 'absolute',
+    right: width * 0.02,
+    zIndex: 1,
+    backgroundColor: '#FBFBFC80',
+    marginTop: height * 0.005,
+    marginLeft: width * 0.01,
+    borderRadius: 5,
+  },
+  menuitemcontainer: {
+    backgroundColor: '#EBEFFF',
+    padding: 5,
+    borderRadius: 5,
+    width: width * 0.2,
+    position: 'absolute',
+    right: width * 0.02,
+    zIndex: 1,
+    marginTop: height * 0.03,
+  },
+  editcontainer: {
+    borderWidth: 0.5,
+    borderRadius: 3,
+    alignItems: 'center',
+  },
+  dltcontainer: {
+    borderWidth: 0.5,
+    borderRadius: 3,
+    alignItems: 'center',
+    marginTop: height * 0.01,
+    marginBottom: height * 0.004,
+  },
+  menutxt: {
+    fontSize: fontSize(14),
+  },
+  addbtncontainer: {
+    position: 'absolute',
+    bottom: height * 0.1,
+    right: width * 0.05,
+    zIndex: 10,
+  },
+
+  addbtn: {
+    backgroundColor: '#452CE8',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+
+  addtxt: {
+    color: '#FFFFFF',
+    fontSize: fontSize(14),
+    fontWeight: 'bold',
   },
 });

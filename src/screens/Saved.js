@@ -17,7 +17,6 @@ import {useNavigation} from '@react-navigation/native';
 import Back from '../assets/Icons/Backarrow.svg';
 import Bell from '../assets/Icons/Bell.svg';
 import Rating from '../assets/Icons/Rating.svg';
-import Heart from '../assets/Icons/Heart.svg';
 import Heartfill from '../assets/Icons/Heartfill.svg';
 import auth from '@react-native-firebase/auth';
 

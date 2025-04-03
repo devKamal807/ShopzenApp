@@ -11,6 +11,7 @@ import {View, Text, StyleSheet, Dimensions, PixelRatio} from 'react-native';
 import Hearttab from '../assets/Icons/Hearttab.svg';
 import Homefill from '../assets/Icons/Homefill.svg';
 import Userfill from '../assets/Icons/Userfill.svg';
+import SavedHeart from '../assets/Icons/SavedHeart.svg';
 
 const Tab = createBottomTabNavigator();
 
@@ -30,7 +31,7 @@ export default function TabNavigation() {
             IconComponent = focused ? Homefill : HomeIcon;
             label = 'Home';
           } else if (route.name === 'Saved') {
-            IconComponent = focused ? Hearttab : HeartIcon;
+            IconComponent = focused ? Hearttab : SavedHeart;
             label = 'Saved';
           } else if (route.name === 'Account') {
             IconComponent = focused ? Userfill : UserIcon;
@@ -56,9 +57,11 @@ export default function TabNavigation() {
         tabBarShowLabel: false,
         tabBarStyle: {
           backgroundColor: '#fff',
-          height: 60,
+          height: height * 0.08,
           borderTopWidth: 1,
           borderTopColor: '#ddd',
+          
+          
         },
       })}>
       <Tab.Screen name="Home" component={Home} />
@@ -72,7 +75,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: height * 0.01,
+    marginTop: height * 0.03,
   },
   label: {
     fontSize: 8,

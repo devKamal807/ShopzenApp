@@ -10,6 +10,8 @@ import SignupwithEmail from '../screens/SignupwithEmail';
 import LoginwithEmail from '../screens/LoginwithEmail';
 import ProductDetails from '../screens/ProductDetails';
 import TabNavigation from './TabNavigation';
+import EditProduct from '../screens/EditProduct';
+import AddProduct from '../screens/AddProduct';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,20 +23,17 @@ export default function StackNavigations() {
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // Check if onboarding has been shown
+
         const onboardingShown = await AsyncStorage.getItem('onboardingShown');
         setIsFirstLaunch(onboardingShown === null);
 
-        // Check if the user is logged in
         const user = auth().currentUser;
         setIsLoggedIn(!!user);
 
-        // Store onboarding status if not set
         if (onboardingShown === null) {
           await AsyncStorage.setItem('onboardingShown', 'true');
         }
 
-        // Show splash screen for 3 seconds
         setTimeout(() => setSplashLogo(false), 3000);
       } catch (error) {
         console.log('Error initializing app:', error);
@@ -60,6 +59,8 @@ export default function StackNavigations() {
       <Stack.Screen name="LoginwithEmail" component={LoginwithEmail} />
       <Stack.Screen name="TabNavigation" component={TabNavigation} />
       <Stack.Screen name="ProductDetails" component={ProductDetails} />
+      <Stack.Screen name="EditProduct" component={EditProduct}/>
+      <Stack.Screen name="AddProduct" component={AddProduct}/>
     </Stack.Navigator>
   );
 }
