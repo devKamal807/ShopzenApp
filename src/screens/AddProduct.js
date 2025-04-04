@@ -8,6 +8,7 @@ import {
   Alert,
   Dimensions,
   PixelRatio,
+  ActivityIndicator,
 } from 'react-native';
 import React, {useState} from 'react';
 import axios from 'axios';
@@ -23,6 +24,7 @@ export default function AddProduct() {
 
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const staticImage =
     'https://rigs-and-marine.s3.us-east-1.amazonaws.com/eventCoverImage.png';
@@ -32,6 +34,7 @@ export default function AddProduct() {
       Alert.alert('Error', 'Please enter all details');
       return;
     }
+    setLoading(true)
 
     try {
       const response = await axios.post(
@@ -50,10 +53,13 @@ export default function AddProduct() {
 
       setTitle('');
       setPrice('');
+      
       navigation.navigate('TabNavigation', {refresh: true});
     } catch (error) {
       console.error('Error adding product:', error);
       Alert.alert('Error', 'Failed to add product');
+    } finally{
+      setLoading(false);
     }
   };
 
@@ -75,6 +81,7 @@ export default function AddProduct() {
             onChangeText={setTitle}
             placeholder="Enter product title"
             placeholderTextColor="#323135"
+            style={styles.inputtxt}
           />
         </View>
       </View>
@@ -90,14 +97,25 @@ export default function AddProduct() {
             keyboardType="numeric"
             placeholderTextColor="#323135"
             onChangeText={setPrice}
+            style={styles.inputtxt}
           />
         </View>
       </View>
 
       <View style={styles.updatecontainer}>
-        <TouchableOpacity style={styles.updatebtn} onPress={handleAddProduct}>
-          <Text style={styles.btntxt}>Add Product</Text>
-        </TouchableOpacity>
+
+      <TouchableOpacity
+  style={styles.updatebtn}
+  onPress={handleAddProduct}
+  disabled={loading} // disable button while loading
+>
+  {loading ? (
+    <ActivityIndicator size="small" color="#fff" />
+  ) : (
+    <Text style={styles.btntxt}>Add Product</Text>
+  )}
+</TouchableOpacity>
+
       </View>
     </SafeAreaView>
   );
@@ -157,4 +175,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontFamily: 'satoshivariable',
   },
+  inputtxt:{
+    color:'#323135',
+  }
 });

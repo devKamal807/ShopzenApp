@@ -619,7 +619,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: width * 0.02,
     zIndex: 1,
-    marginTop: height * 0.03,
+    marginTop: height * 0.05,
   },
   editcontainer: {
     borderWidth: 0.5,
@@ -638,7 +638,7 @@ const styles = StyleSheet.create({
   },
   addbtncontainer: {
     position: 'absolute',
-    bottom: height * 0.1,
+    bottom: height * 0.03,
     right: width * 0.05,
     zIndex: 10,
   },

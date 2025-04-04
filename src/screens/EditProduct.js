@@ -13,10 +13,10 @@ import {
 import React, {useState} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
 
-import {launchImageLibrary} from 'react-native-image-picker';
+
 
 import Backarrow from '../assets/Icons/Backarrow.svg';
-import Upload from '../assets/Icons/UploadImage.svg';
+
 
 const {width, height} = Dimensions.get('window');
 const fontSize = size => PixelRatio.getFontScale() * size;
@@ -79,7 +79,8 @@ export default function EditProduct() {
           <Text style={styles.label}>Title</Text>
         </View>
         <View style={styles.inputcontainer}>
-          <TextInput value={title} onChangeText={setTitle} />
+          <TextInput value={title} onChangeText={setTitle}
+          style={styles.inputtxt} />
         </View>
       </View>
 
@@ -92,6 +93,7 @@ export default function EditProduct() {
             value={price}
             keyboardType="numeric"
             onChangeText={setPrice}
+            style={styles.inputtxt}
           />
         </View>
       </View>
@@ -178,5 +180,8 @@ const styles = StyleSheet.create({
     fontSize: fontSize(15),
     marginLeft: width * 0.005,
     marginTop: height * 0.003,
+  },
+  inputtxt:{
+    color:'#323135',
   },
 });
